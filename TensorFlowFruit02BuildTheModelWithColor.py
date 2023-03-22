@@ -43,7 +43,7 @@ model = keras.Sequential([
 
     # lets define the hidden layer.
     # we dont know what is the exact number , so will try with 512 neurons
-    keras.layers.Dense(512,activation='relu'), # relu has no negative values.
+    keras.layers.Dense(100,activation='relu'), # relu has no negative values.
 
     keras.layers.Dense(9,activation='softmax') 
 ])
@@ -58,15 +58,21 @@ model.compile(
 
 print('Finish compile the model')
 
-model.fit(train_data,train_data_lables,epochs=10)
+model.fit(train_data,train_data_lables,epochs=120)
 
 
 test_loss , test_acc = model.evaluate(test_data,test_data_labels,verbose=1)
 print("*******************         Test accuracy : ", test_acc)
 
+camara = cv2.VideoCapture(0)
 
+frame_weight = 700
+frame_height = 700
 
-predictions = model.predict(test_data)
+predictions=model.predict(test_data)
+model.save('FruitModel.h5')
+print("Modelo guardado")
+
 
 
 print ('The predicted class index :')
@@ -74,7 +80,6 @@ print ('The predicted class index :')
 
 
 for predict , test_label in zip(predictions,test_data_labels):
-    print(predict)
     class_index = np.argmax(predict)
     class_name_predict = class_names[class_index]
 
@@ -114,7 +119,7 @@ def salidas():
     show_output(np.random.randint(40,44))
 # salidas()
 time.sleep(2)
-create_confusion_matrix(predictions)
+# create_confusion_matrix(predictions)
 
 
 
