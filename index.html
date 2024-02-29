@@ -5,12 +5,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 </head>
-<body>
+<body onload="initializeCamera()">
     <h1>Fruit Classifier</h1>
     <div style="display: flex;">
         <div>
             <video id="videoElement" width="400" height="300" autoplay></video>
             <button onclick="captureAndPredict()">Capture & Predict</button>
+            <button onclick="changeCamera()">Change Camera</button>
+            <input type="file" accept="image/*" onchange="uploadImage(event)">
         </div>
         <div>
             <canvas id="canvas" width="224" height="224"></canvas>
@@ -21,6 +23,19 @@
     <script>
         // Map class indices to class names
         const classNames = ["apple", "cucumber", "greentomato", "Guineo", "lemon", "lemontangerine", "mango", "potato", "Uva"];
+
+        let videoStream;
+
+        async function initializeCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                const video = document.getElementById('videoElement');
+                video.srcObject = stream;
+                videoStream = stream;
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+            }
+        }
 
         async function captureAndPredict() {
             const video = document.getElementById('videoElement');
@@ -59,15 +74,35 @@
             contextCapturedImage.drawImage(video, 0, 0, canvasCapturedImage.width, canvasCapturedImage.height);
         }
 
-        // Access the webcam stream
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                const video = document.getElementById('videoElement');
-                video.srcObject = stream;
-            })
-            .catch((err) => {
-                console.error(err);
-            });
+        function changeCamera() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then((stream) => {
+                    const video = document.getElementById('videoElement');
+                    video.srcObject = stream;
+                    videoStream = stream;
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+        }
+
+        function uploadImage(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = async function() {
+                const image = new Image();
+                image.onload = function() {
+                    const canvas = document.getElementById('canvas');
+                    const context = canvas.getContext('2d');
+                    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                };
+                image.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        }
     </script>
 </body>
 </html>
