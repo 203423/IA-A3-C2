@@ -21,7 +21,6 @@
     </div>
 
     <script>
-        // Map class indices to class names
         const classNames = ["apple", "cucumber", "greentomato", "Guineo", "lemon", "lemontangerine", "mango", "potato", "Uva"];
 
         let videoStream;
@@ -42,33 +41,25 @@
             const canvas = document.getElementById('canvas');
             const context = canvas.getContext('2d');
 
-            // Capture image from webcam
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
-            // Resize image data to match model input size
             const resizedImageData = tf.image.resizeBilinear(tf.browser.fromPixels(video), [28, 28]);
 
-            // Convert image data to tensor
             const tensor = resizedImageData.expandDims()
                                               .toFloat()
-                                              .div(tf.scalar(255)); // Normalize pixel values
+                                              .div(tf.scalar(255)); 
 
-            // Load the TensorFlow.js model
             const model = await tf.loadLayersModel('FruitModel/model.json');
 
-            // Classify the image
             const predictions = await model.predict(tensor);
 
-            // Get the top prediction
             const topPrediction = predictions.argMax(axis=-1).dataSync()[0];
             const className = classNames[topPrediction];
 
-            // Display prediction
             const predictionResult = document.getElementById('predictionResult');
             predictionResult.innerHTML = `Predicted class: ${className}`;
 
-            // Display captured image
             const canvasCapturedImage = document.getElementById('canvas');
             const contextCapturedImage = canvasCapturedImage.getContext('2d');
             contextCapturedImage.drawImage(video, 0, 0, canvasCapturedImage.width, canvasCapturedImage.height);
@@ -106,3 +97,4 @@
     </script>
 </body>
 </html>
+
