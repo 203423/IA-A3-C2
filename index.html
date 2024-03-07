@@ -85,10 +85,26 @@
             const reader = new FileReader();
             reader.onload = async function() {
                 const image = new Image();
-                image.onload = function() {
+                image.onload = async function() {
                     const canvas = document.getElementById('canvas');
                     const context = canvas.getContext('2d');
                     context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+                    const resizedImageData = tf.image.resizeBilinear(tf.browser.fromPixels(canvas), [28, 28]);
+
+                    const tensor = resizedImageData.expandDims()
+                                                      .toFloat()
+                                                      .div(tf.scalar(255));
+
+                    const model = await tf.loadLayersModel('FruitModel/model.json');
+
+                    const predictions = await model.predict(tensor);
+
+                    const topPrediction = predictions.argMax(axis=-1).dataSync()[0];
+                    const className = classNames[topPrediction];
+
+                    const predictionResult = document.getElementById('predictionResult');
+                    predictionResult.innerHTML = `Predicted class: ${className}`;
                 };
                 image.src = reader.result;
             };
